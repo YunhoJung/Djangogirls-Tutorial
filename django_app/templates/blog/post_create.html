@@ -2,9 +2,10 @@
 
 {% block content %}
 <div class="container">
-    <form action="" method="POST">
-        <input type="text">
-        <textarea name="" id="" cols="30" rows="10"></textarea>
+    <form action="/post/create/" method="POST">
+        {% csrf_token %}
+        <input  name="title" type="text">
+        <textarea name="text" id="" cols="30" rows="10"></textarea>
         <button type="submit">작성</button>
     </form>
 </div>
