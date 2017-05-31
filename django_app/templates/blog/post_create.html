@@ -4,9 +4,15 @@
 <div class="container">
     <form action="/post/create/" method="POST">
         {% csrf_token %}
-        <input  name="title" type="text">
-        <textarea name="text" id="" cols="30" rows="10"></textarea>
-        <button type="submit">작성</button>
+
+        {% for field in form %}
+        <div class="form-group">
+            {{ field.label_tag }}
+            {{ field }}
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary btn-block">작성</button>
     </form>
 </div>
 {% endblock %}

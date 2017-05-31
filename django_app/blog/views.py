@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from .models import Post  # 같은폴더에 있기 때문에 상대경로로 사용하는게 나음
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from .forms import PostCreateForm
 
 User = get_user_model()
 
@@ -33,18 +34,51 @@ def post_detail(request, pk):  # pk라는 파라미터를 줘야함
 
 def post_create(request):
     if request.method == 'GET':
+        form = PostCreateForm()
         context = {
+            'form': form,
         }
         return render(request, 'blog/post_create.html', context)
     elif request.method == 'POST':
+        # Form클래스의 생성자에 POST데이터를 전달하여 Form인스턴스를 생성
+        form = PostCreateForm(request.POST)
+        # Form인스턴스의 유효성을 검사하는 is_valid메서드
+        if form.is_valid():
+            title = form.cleaned_data['title']
+            text = form.cleaned_data['text']
+            user = User.objects.first()
+            post = Post.objects.create(
+                title=title,
+                text=text,
+                author=user,
+            )
+            return redirect('post_detail', pk=post.pk)
+        # 유효성 검사를 통과하지 못했을 경우 error가 담긴 form을 이용해 기존페이지를 보여줌
+        else:
+            context = {
+                'form': form,
+            }
+            return render(request, 'blog/post_create.html', context=context)
+            # create를 실행하는 순간 데이터베이스에 들어감
+
+
+def post_modify(request, pk):
+    post = Post.objects.get(pk=pk)
+    if request.method == 'POST':
+        # POST요청(request)가 올 경우 전달받은 데이터의 title, text값을 사용해서
+        # 해당하는 Post인스턴스 (post)의 title, text속성값에 덮어씌우고
+        # DB에 업데이트하는 save()메서드 실행
         data = request.POST
         title = data['title']
         text = data['text']
-        user = User.objects.first()
-        post = Post.objects.create(
-            title=title,
-            text=text,
-            author=user,
-        )
+        post.title = title
+        post.text = text
+        post.save()
         return redirect('post_detail', pk=post.pk)
-    # create를 실행하는 순간 데이터베이스에 들어감
+    elif request.method == 'GET':
+        # pk에 해당하는 Post인스턴스를 전달
+
+        context = {
+            'post': post,
+        }
+        return render(request, 'blog/post_modify.html', context)
